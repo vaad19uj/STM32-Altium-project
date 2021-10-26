@@ -58,6 +58,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define RFID_IRQ_Pin GPIO_PIN_4
+#define RFID_IRQ_GPIO_Port GPIOC
+#define RFID_IRQ_EXTI_IRQn EXTI4_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
