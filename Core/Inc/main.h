@@ -50,6 +50,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -58,9 +60,13 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LOCK_CONTROL_Pin GPIO_PIN_2
+#define LOCK_CONTROL_GPIO_Port GPIOC
 #define RFID_IRQ_Pin GPIO_PIN_4
 #define RFID_IRQ_GPIO_Port GPIOC
 #define RFID_IRQ_EXTI_IRQn EXTI4_IRQn
+#define PWM_BUZZER_Pin GPIO_PIN_8
+#define PWM_BUZZER_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
