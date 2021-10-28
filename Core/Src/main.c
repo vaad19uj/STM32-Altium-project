@@ -270,24 +270,31 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : LOCK_CONTROL_Pin */
-  GPIO_InitStruct.Pin = LOCK_CONTROL_Pin;
+  /*Configure GPIO pins : BUCK_EN_Pin RFID_EN_Pin LOCK_CONTROL_Pin */
+  GPIO_InitStruct.Pin = BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LOCK_CONTROL_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RFID_IRQ_Pin */
   GPIO_InitStruct.Pin = RFID_IRQ_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RFID_IRQ_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : BOOT0_Pin */
+  GPIO_InitStruct.Pin = BOOT0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BOOT0_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);

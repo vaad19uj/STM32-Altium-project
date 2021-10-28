@@ -60,6 +60,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define BUCK_EN_Pin GPIO_PIN_13
+#define BUCK_EN_GPIO_Port GPIOC
+#define RFID_EN_Pin GPIO_PIN_14
+#define RFID_EN_GPIO_Port GPIOC
+#define XIN_Pin GPIO_PIN_0
+#define XIN_GPIO_Port GPIOH
 #define LOCK_CONTROL_Pin GPIO_PIN_2
 #define LOCK_CONTROL_GPIO_Port GPIOC
 #define RFID_IRQ_Pin GPIO_PIN_4
@@ -67,6 +73,8 @@ void Error_Handler(void);
 #define RFID_IRQ_EXTI_IRQn EXTI4_IRQn
 #define PWM_BUZZER_Pin GPIO_PIN_8
 #define PWM_BUZZER_GPIO_Port GPIOA
+#define BOOT0_Pin GPIO_PIN_3
+#define BOOT0_GPIO_Port GPIOH
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
