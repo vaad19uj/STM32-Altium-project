@@ -44,6 +44,8 @@ SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim1;
 
+UART_HandleTypeDef huart4;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -53,6 +55,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -92,6 +95,7 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   MX_TIM1_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -115,6 +119,7 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -138,6 +143,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_UART4;
+  PeriphClkInit.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
@@ -260,6 +271,41 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief UART4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART4_Init(void)
+{
+
+  /* USER CODE BEGIN UART4_Init 0 */
+
+  /* USER CODE END UART4_Init 0 */
+
+  /* USER CODE BEGIN UART4_Init 1 */
+
+  /* USER CODE END UART4_Init 1 */
+  huart4.Instance = UART4;
+  huart4.Init.BaudRate = 9600;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART4_Init 2 */
+
+  /* USER CODE END UART4_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -275,10 +321,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin|UNUSED_IO_4_Pin
+                          |UNISED_IO_3_Pin|UNUSED_IO_2_Pin|UNUSED_IO_1_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : BUCK_EN_Pin RFID_EN_Pin LOCK_CONTROL_Pin */
-  GPIO_InitStruct.Pin = BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, LED_Pin|UNUSED_IO_5_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : BUCK_EN_Pin RFID_EN_Pin LOCK_CONTROL_Pin UNUSED_IO_4_Pin
+                           UNISED_IO_3_Pin UNUSED_IO_2_Pin UNUSED_IO_1_Pin */
+  GPIO_InitStruct.Pin = BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin|UNUSED_IO_4_Pin
+                          |UNISED_IO_3_Pin|UNUSED_IO_2_Pin|UNUSED_IO_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -289,6 +341,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RFID_IRQ_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LED_Pin UNUSED_IO_5_Pin */
+  GPIO_InitStruct.Pin = LED_Pin|UNUSED_IO_5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BOOT0_Pin */
   GPIO_InitStruct.Pin = BOOT0_Pin;
