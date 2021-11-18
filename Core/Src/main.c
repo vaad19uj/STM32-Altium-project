@@ -321,16 +321,19 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin|UNUSED_IO_4_Pin
-                          |UNISED_IO_3_Pin|UNUSED_IO_2_Pin|UNUSED_IO_1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin|UNUSED_IO_5_Pin
+                          |UNISED_IO_4_Pin|UNUSED_IO_3_Pin|UNUSED_IO_2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED_Pin|UNUSED_IO_5_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LED_Pin|UNUSED_IO_8_Pin|UNUSED_IO_7_Pin|UNUSED_IO_6_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : BUCK_EN_Pin RFID_EN_Pin LOCK_CONTROL_Pin UNUSED_IO_4_Pin
-                           UNISED_IO_3_Pin UNUSED_IO_2_Pin UNUSED_IO_1_Pin */
-  GPIO_InitStruct.Pin = BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin|UNUSED_IO_4_Pin
-                          |UNISED_IO_3_Pin|UNUSED_IO_2_Pin|UNUSED_IO_1_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(UNUSED_IO_1_GPIO_Port, UNUSED_IO_1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : BUCK_EN_Pin RFID_EN_Pin LOCK_CONTROL_Pin UNUSED_IO_5_Pin
+                           UNISED_IO_4_Pin UNUSED_IO_3_Pin UNUSED_IO_2_Pin */
+  GPIO_InitStruct.Pin = BUCK_EN_Pin|RFID_EN_Pin|LOCK_CONTROL_Pin|UNUSED_IO_5_Pin
+                          |UNISED_IO_4_Pin|UNUSED_IO_3_Pin|UNUSED_IO_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -342,12 +345,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RFID_IRQ_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED_Pin UNUSED_IO_5_Pin */
-  GPIO_InitStruct.Pin = LED_Pin|UNUSED_IO_5_Pin;
+  /*Configure GPIO pins : LED_Pin UNUSED_IO_8_Pin UNUSED_IO_7_Pin UNUSED_IO_6_Pin */
+  GPIO_InitStruct.Pin = LED_Pin|UNUSED_IO_8_Pin|UNUSED_IO_7_Pin|UNUSED_IO_6_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : UNUSED_IO_1_Pin */
+  GPIO_InitStruct.Pin = UNUSED_IO_1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(UNUSED_IO_1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BOOT0_Pin */
   GPIO_InitStruct.Pin = BOOT0_Pin;
