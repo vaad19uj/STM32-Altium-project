@@ -63,6 +63,11 @@ static void MX_UART4_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+void blinkyLed(){
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	HAL_Delay(100);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -98,12 +103,16 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
+  // Buck converter is turned on
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, RESET);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  blinkyLed();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
