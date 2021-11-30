@@ -22,6 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdbool.h>
 
 /* USER CODE END Includes */
 
@@ -68,16 +69,47 @@ void blinkyLed(){
 	HAL_Delay(100);
 }
 
+bool checkIfCardIsPresent(){
+	//do something with hspi1
+	return false;
+}
+
+bool checkIfCardIdIsValid(){
+	//do something with hspi1
+	return false;
+}
+
+void openAndCloseLock(){
+	//Or do we need to use PWM? Since "duty cycle" should be 100% it should be sufficient with WritePin?
+	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, SET);
+	HAL_Delay(5000);
+	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, RESET);
+}
+
+void buzzer(){
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	//50% duty cycle
+}
+
 /*
- * OPEN/CLOSE LOCK
+ * OPEN/CLOSE LOCK LOOP
  * 1. sleep mode, buck is turned off
- * 2. wake up by timer interrupt
+ * 2. wake up by timer interrupt, turn on buck
  * 3. check RFID if card is present
  * 3a. if not present -> go back to sleep mode
  * 3b. if card is present -> check if card has "valid" card id
  * 3ba. if not valid id -> stay locked, buzzer noise, turn on LED?
  * 3bb. if valid -> open lock for a few seconds then close
- * 4. go back to sleep
+ * 4. go back to sleep, turn off buck
+ */
+
+/*
+ * WHAT DO WE NEED?
+ * 1. Check how to enter sleep mode. Can we get BUCK_Pin high in sleep mode/power save mode/VBAT mode?
+ * 2. Can we wake up MCU with a timer? Set BUCK_Pin to ground
+ * 3. Some SPI magic functions are needed, checkIfCardIsPresent(), checkIfCardIdIsValid()
+ * 3+. Other help functions: openLock(), blinkyLed(), buzzer()
+ * 4. BUCK_Pin to high, enter sleep mode
  */
 
 /* USER CODE END 0 */
