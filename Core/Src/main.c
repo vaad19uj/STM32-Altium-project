@@ -68,6 +68,18 @@ void blinkyLed(){
 	HAL_Delay(100);
 }
 
+/*
+ * OPEN/CLOSE LOCK
+ * 1. sleep mode, buck is turned off
+ * 2. wake up by timer interrupt
+ * 3. check RFID if card is present
+ * 3a. if not present -> go back to sleep mode
+ * 3b. if card is present -> check if card has "valid" card id
+ * 3ba. if not valid id -> stay locked, buzzer noise, turn on LED?
+ * 3bb. if valid -> open lock for a few seconds then close
+ * 4. go back to sleep
+ */
+
 /* USER CODE END 0 */
 
 /**
