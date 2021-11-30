@@ -91,6 +91,30 @@ void buzzer(){
 	//50% duty cycle
 }
 
+void RFIDLockLoop(){
+	// Buck converter is turned on
+	HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, RESET);
+	HAL_Delay(100);
+
+	// or do we want a state machine? Seems overkill maybe
+	if(checkIfCardIsPresent()){
+		if(checkIfCardIsValid()){
+			openAndCloseLock();
+
+			// go back to sleep
+		}else{
+			buzzer();
+			// blink with LED to indicate error?
+			// go back to sleep?
+		}
+	}else{
+		// go back to sleep
+	}
+
+	// Buck converter is turned off
+	HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, SET);
+}
+
 /*
  * OPEN/CLOSE LOCK LOOP
  * 1. sleep mode, buck is turned off
