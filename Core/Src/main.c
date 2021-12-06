@@ -88,7 +88,14 @@ void openAndCloseLock(){
 
 void buzzer(){
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-	//50% duty cycle
+
+	//value for 50% dc?
+	uint16_t new_pwm_val = 32768;
+
+	// update pwm
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, new_pwm_val);
+	HAL_Delay(5000);
+	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 }
 
 void RFIDLockLoop(){
