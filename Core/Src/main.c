@@ -71,12 +71,12 @@ void blinkyLed(){
 
 bool checkIfCardIsPresent(){
 	//do something with hspi1
-	return false;
+	return true;
 }
 
 bool checkIfCardIdIsValid(){
 	//do something with hspi1
-	return false;
+	return true;
 }
 
 void openAndCloseLock(){
@@ -94,53 +94,46 @@ void buzzer(){
 
 	// update pwm
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, new_pwm_val);
-	HAL_Delay(5000);
+	HAL_Delay(3000);
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 }
 
 void RFIDLockLoop(){
-	// Buck converter is turned on
-	HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, RESET);
-	HAL_Delay(100);
-
-	// or do we want a state machine? Seems overkill maybe
-	if(checkIfCardIsPresent()){
-		if(checkIfCardIsValid()){
+	if(checkIfCardIsPresent() == true){
+		if(checkIfCardIsValid() == true){
 			openAndCloseLock();
-
-			// go back to sleep
 		}else{
 			buzzer();
-			// blink with LED to indicate error?
-			// go back to sleep?
 		}
-	}else{
-		// go back to sleep
-	}
+	} // else -> goes back to sleep mode
+}
 
-	// Buck converter is turned off
-	HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, SET);
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	//TODO: configure timer to a few seconds interrupt interval?
+	if(htim->Instance == TIM1){
+		RFIDLockLoop();
+	}
 }
 
 /*
  * OPEN/CLOSE LOCK LOOP
- * 1. sleep mode, buck is turned off
- * 2. wake up by timer interrupt, turn on buck
+ * 1. sleep mode
+ * 2. wake up by timer interrupt
  * 3. check RFID if card is present
  * 3a. if not present -> go back to sleep mode
  * 3b. if card is present -> check if card has "valid" card id
  * 3ba. if not valid id -> stay locked, buzzer noise, turn on LED?
  * 3bb. if valid -> open lock for a few seconds then close
- * 4. go back to sleep, turn off buck
+ * 4. go back to sleep
  */
 
 /*
  * WHAT DO WE NEED?
- * 1. Check how to enter sleep mode. Can we get BUCK_Pin high in sleep mode/power save mode/VBAT mode?
- * 2. Can we wake up MCU with a timer? Set BUCK_Pin to ground
+ * 1. Can we get BUCK_Pin high in sleep mode/power save mode/VBAT mode?
+ * 2. Can we "wake up" from VBAT mode with a timer interrupt?
+ * Don't think we can, so BUCK must be on all the time, even with the CPU in sleep mode??
  * 3. Some SPI magic functions are needed, checkIfCardIsPresent(), checkIfCardIdIsValid()
- * 3+. Other help functions: openLock(), blinkyLed(), buzzer()
- * 4. BUCK_Pin to high, enter sleep mode
+ * 3+. Other help functions: openAndCloseLock(), blinkyLed(), buzzer()
  */
 
 /* USER CODE END 0 */
@@ -181,13 +174,20 @@ int main(void)
   // Buck converter is turned on
   HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, RESET);
 
+  // start timer 1 for interrupt
+  HAL_TIM_Base_Start_IT(&htim1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  blinkyLed();
+	  //blinkyLed();
+
+	  // enter sleep mode, wake up from interrupt
+	  HAL_PWR_EnableSleepOnExit();
+	  HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
