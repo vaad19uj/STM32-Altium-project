@@ -64,9 +64,10 @@ static void MX_UART4_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void blinkyLed(){
-	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	HAL_Delay(100);
+void led(){
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
+	HAL_Delay(1000);
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 }
 
 bool checkIfCardIsPresent(){
@@ -89,10 +90,9 @@ void openAndCloseLock(){
 void buzzer(){
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
-	//value for 50% dc?
 	uint16_t new_pwm_val = 32768;
 
-	// update pwm
+	// update PWM
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, new_pwm_val);
 	HAL_Delay(3000);
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
@@ -100,19 +100,28 @@ void buzzer(){
 
 void RFIDLockLoop(){
 	if(checkIfCardIsPresent() == true){
-		if(checkIfCardIsValid() == true){
+		if(checkIfCardIdIsValid() == true){
 			openAndCloseLock();
 		}else{
 			buzzer();
+			led();
 		}
 	} // else -> goes back to sleep mode
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	//TODO: configure timer to a few seconds interrupt interval?
 	if(htim->Instance == TIM1){
 		RFIDLockLoop();
 	}
+}
+
+void setupRFIDReader(){
+	//select oscillator
+	//Initialise peripherals
+}
+
+void findTags(){
+	//set registers for protocol and execute anti collision sequence to find tags
 }
 
 /*
@@ -125,15 +134,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
  * 3ba. if not valid id -> stay locked, buzzer noise, turn on LED?
  * 3bb. if valid -> open lock for a few seconds then close
  * 4. go back to sleep
- */
-
-/*
- * WHAT DO WE NEED?
- * 1. Can we get BUCK_Pin high in sleep mode/power save mode/VBAT mode?
- * 2. Can we "wake up" from VBAT mode with a timer interrupt?
- * Don't think we can, so BUCK must be on all the time, even with the CPU in sleep mode??
- * 3. Some SPI magic functions are needed, checkIfCardIsPresent(), checkIfCardIdIsValid()
- * 3+. Other help functions: openAndCloseLock(), blinkyLed(), buzzer()
  */
 
 /* USER CODE END 0 */
@@ -177,17 +177,20 @@ int main(void)
   // start timer 1 for interrupt
   HAL_TIM_Base_Start_IT(&htim1);
 
+  setupRFIDReader();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //blinkyLed();
+//	  led();
+//	  buzzer();
 
 	  // enter sleep mode, wake up from interrupt
-	  HAL_PWR_EnableSleepOnExit();
-	  HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+	 HAL_PWR_EnableSleepOnExit();
+	 HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -304,9 +307,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 8399;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 65535;
+  htim1.Init.Period = 9999;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
