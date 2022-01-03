@@ -68,6 +68,8 @@ void Error_Handler(void);
 #define LOCK_CONTROL_GPIO_Port GPIOC
 #define XIN_Pin GPIO_PIN_0
 #define XIN_GPIO_Port GPIOH
+#define SPI_NSS_Pin GPIO_PIN_4
+#define SPI_NSS_GPIO_Port GPIOA
 #define RFID_IRQ_Pin GPIO_PIN_4
 #define RFID_IRQ_GPIO_Port GPIOC
 #define RFID_IRQ_EXTI_IRQn EXTI4_IRQn

@@ -72,6 +72,14 @@ void led(){
 
 bool checkIfCardIsPresent(){
 	//do something with hspi1
+
+	/*
+	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
+	HAL_SPI_Transmit(&hspi1, (uint8_t *)&instruction, 1, 100);
+	HAL_SPI_Receive(&hspi1, (uint8_t *)spi_buf, 1, 100);
+	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
+	*/
+
 	return true;
 }
 
@@ -90,7 +98,7 @@ void openAndCloseLock(){
 void buzzer(){
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
-	uint16_t new_pwm_val = 32768;
+	uint16_t new_pwm_val = 4999;
 
 	// update PWM
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, new_pwm_val);
@@ -145,6 +153,7 @@ void findTags(){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	char spi_buf[20];
 
   /* USER CODE END 1 */
 
@@ -173,6 +182,9 @@ int main(void)
 
   // Buck converter is turned on
   HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, RESET);
+
+  //SPI SS-pin should default high
+  HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
 
   // start timer 1 for interrupt
   HAL_TIM_Base_Start_IT(&htim1);
@@ -269,7 +281,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -412,10 +424,10 @@ static void MX_GPIO_Init(void)
                           |UNISED_IO_4_Pin|UNUSED_IO_3_Pin|UNUSED_IO_2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED_Pin|UNUSED_IO_8_Pin|UNUSED_IO_7_Pin|UNUSED_IO_6_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, SPI_NSS_Pin|UNUSED_IO_1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(UNUSED_IO_1_GPIO_Port, UNUSED_IO_1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LED_Pin|UNUSED_IO_8_Pin|UNUSED_IO_7_Pin|UNUSED_IO_6_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : BUCK_EN_Pin RFID_EN_Pin LOCK_CONTROL_Pin UNUSED_IO_5_Pin
                            UNISED_IO_4_Pin UNUSED_IO_3_Pin UNUSED_IO_2_Pin */
@@ -425,6 +437,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SPI_NSS_Pin UNUSED_IO_1_Pin */
+  GPIO_InitStruct.Pin = SPI_NSS_Pin|UNUSED_IO_1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RFID_IRQ_Pin */
   GPIO_InitStruct.Pin = RFID_IRQ_Pin;
@@ -438,13 +457,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : UNUSED_IO_1_Pin */
-  GPIO_InitStruct.Pin = UNUSED_IO_1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(UNUSED_IO_1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BOOT0_Pin */
   GPIO_InitStruct.Pin = BOOT0_Pin;
