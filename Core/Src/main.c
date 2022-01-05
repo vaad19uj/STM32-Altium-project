@@ -48,6 +48,7 @@ TIM_HandleTypeDef htim1;
 UART_HandleTypeDef huart4;
 
 /* USER CODE BEGIN PV */
+int interruptFlag = 0;
 
 /* USER CODE END PV */
 
@@ -66,7 +67,7 @@ static void MX_UART4_Init(void);
 
 void led(){
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
-	HAL_Delay(1000);
+	HAL_Delay(500);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 }
 
@@ -90,7 +91,7 @@ int checkIfCardIdIsValid(){
 
 void openAndCloseLock(){
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, SET);
-	HAL_Delay(5000);
+	HAL_Delay(500);
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, RESET);
 }
 
@@ -106,19 +107,18 @@ void buzzer(){
 }
 
 void RFIDLockLoop(){
-	if(checkIfCardIsPresent() == 1){
-		if(checkIfCardIdIsValid() == 1){
+	if(checkIfCardIsPresent()){
+		if(checkIfCardIdIsValid()){
 			openAndCloseLock();
 		}else{
-			buzzer();
 			led();
 		}
-	} // else -> goes back to sleep mode
+	}
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance == TIM1){
-		RFIDLockLoop();
+		interruptFlag = 1;
 	}
 }
 
@@ -152,7 +152,7 @@ void findTags(){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	char spi_buf[20];
+	//char spi_buf[20];
 
   /* USER CODE END 1 */
 
@@ -196,12 +196,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//	  led();
-//	  buzzer();
-
-	  // enter sleep mode, wake up from interrupt
-	 HAL_PWR_EnableSleepOnExit();
+	 // enter sleep mode, wake up from interrupt
 	 HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+	 if(interruptFlag){
+		 RFIDLockLoop();
+		 interruptFlag = 0;
+	 }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
