@@ -75,11 +75,6 @@ bool checkIfCardIsPresent(){
 
 	/*
 	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
-
-	//Behöver man skriva till MOSI / MISO pins?
-	//MOSI = write, MISO = read
-	//(SPI_transmit/receive löser det?)
-
 	HAL_SPI_Transmit(&hspi1, (uint8_t *)&instruction, 1, 100);
 	HAL_SPI_Receive(&hspi1, (uint8_t *)spi_buf, 1, 100);
 	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
@@ -94,6 +89,7 @@ bool checkIfCardIdIsValid(){
 }
 
 void openAndCloseLock(){
+	//Or do we need to use PWM? Since "duty cycle" should be 100% it should be sufficient with WritePin?
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, SET);
 	HAL_Delay(5000);
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, RESET);
