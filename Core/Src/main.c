@@ -70,7 +70,7 @@ void led(){
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 }
 
-bool checkIfCardIsPresent(){
+int checkIfCardIsPresent(){
 	//do something with hspi1
 
 	/*
@@ -80,12 +80,12 @@ bool checkIfCardIsPresent(){
 	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
 	*/
 
-	return true;
+	return 1;
 }
 
-bool checkIfCardIdIsValid(){
+int checkIfCardIdIsValid(){
 	//do something with hspi1
-	return true;
+	return 1;
 }
 
 void openAndCloseLock(){
@@ -97,7 +97,7 @@ void openAndCloseLock(){
 void buzzer(){
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
-	uint16_t new_pwm_val = 499;
+	uint16_t new_pwm_val = 4999;
 
 	// update PWM
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, new_pwm_val);
@@ -106,8 +106,8 @@ void buzzer(){
 }
 
 void RFIDLockLoop(){
-	if(checkIfCardIsPresent() == true){
-		if(checkIfCardIdIsValid() == true){
+	if(checkIfCardIsPresent() == 1){
+		if(checkIfCardIdIsValid() == 1){
 			openAndCloseLock();
 		}else{
 			buzzer();
@@ -320,7 +320,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 399;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 999;
+  htim1.Init.Period = 9999;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
