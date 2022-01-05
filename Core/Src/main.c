@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdbool.h>
+#include "14443.h"
 
 /* USER CODE END Includes */
 
@@ -49,6 +49,8 @@ UART_HandleTypeDef huart4;
 
 /* USER CODE BEGIN PV */
 int interruptFlag = 0;
+char spi_buf[20];
+unsigned char command[10];
 
 /* USER CODE END PV */
 
@@ -72,14 +74,41 @@ void led(){
 }
 
 int checkIfCardIsPresent(){
-	//do something with hspi1
+	//set registers for protocol and execute anti collision sequence to find tags
 
-	/*
+	// ISO14443A
+	command[0] = ChipStateControl;
+	command[1] = 0x21;
+	command[2] = ISOControl;	// set register 0x01 for ISO14443A operation
+	command[3] = 0x08;
+
+	//??
+	command = (0x1f & command);	/* register address */
+
 	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi1, (uint8_t *)&instruction, 1, 100);
-	HAL_SPI_Receive(&hspi1, (uint8_t *)spi_buf, 1, 100);
+	HAL_SPI_Transmit(&hspi1, (uint8_t *)&command, 4, HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
-	*/
+	HAL_Delay(5);
+
+	AnticollisionSequenceA(0x00);	// do a complete anti collision sequence as described
+
+	// in ISO14443-3 standard for type A
+	command[0] = ChipStateControl;	///* turn off RF driver
+	command[1] = 0x01;
+
+	//??
+	command = (0x1f & command);	/* register address */
+
+	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
+	HAL_SPI_Transmit(&hspi1, (uint8_t *)&command, 2, HAL_MAX_DELAY);
+	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
+	HAL_Delay(1);
+
+	command[0] = IRQStatus;
+	command[1] = IRQMask;
+
+	//Not sure what this function should do? Receive?
+	//ReadCont(command, 2);
 
 	return 1;
 }
@@ -122,27 +151,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	}
 }
 
-void setupRFIDReader(){
-	//select oscillator
-	//Initialise peripherals
-}
-
-void findTags(){
-	//set registers for protocol and execute anti collision sequence to find tags
-}
-
-/*
- * OPEN/CLOSE LOCK LOOP
- * 1. sleep mode
- * 2. wake up by timer interrupt
- * 3. check RFID if card is present
- * 3a. if not present -> go back to sleep mode
- * 3b. if card is present -> check if card has "valid" card id
- * 3ba. if not valid id -> stay locked, buzzer noise, turn on LED?
- * 3bb. if valid -> open lock for a few seconds then close
- * 4. go back to sleep
- */
-
 /* USER CODE END 0 */
 
 /**
@@ -152,7 +160,6 @@ void findTags(){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	//char spi_buf[20];
 
   /* USER CODE END 1 */
 
@@ -188,7 +195,10 @@ int main(void)
   // start timer 1 for interrupt
   HAL_TIM_Base_Start_IT(&htim1);
 
-  setupRFIDReader();
+  // RFID chip enable input
+  HAL_GPIO_WritePin(RFID_EN_GPIO_Port, RFID_EN_Pin, SET);
+
+  // do we need a dummy read of RFID IRQ here?
 
   /* USER CODE END 2 */
 
