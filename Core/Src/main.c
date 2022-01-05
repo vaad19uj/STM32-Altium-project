@@ -89,7 +89,6 @@ bool checkIfCardIdIsValid(){
 }
 
 void openAndCloseLock(){
-	//Or do we need to use PWM? Since "duty cycle" should be 100% it should be sufficient with WritePin?
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, SET);
 	HAL_Delay(5000);
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, RESET);
@@ -98,7 +97,7 @@ void openAndCloseLock(){
 void buzzer(){
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
-	uint16_t new_pwm_val = 4999;
+	uint16_t new_pwm_val = 499;
 
 	// update PWM
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, new_pwm_val);
@@ -321,7 +320,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 399;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 9999;
+  htim1.Init.Period = 999;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
