@@ -1,4 +1,177 @@
-#ifndef 1
+#include "anticollision.h"
+
+/*
+ =======================================================================================================================
+    The function RequestCommand() is used for request and // ;
+    response handling and timing for VCD to VICC // ;
+    communication. // ;
+    Host command = 0x18 // ;
+ =======================================================================================================================
+ */
+
+//inte översatt än
+unsigned char RequestCommand(unsigned char *pbuf, unsigned char lenght, unsigned char brokenBits, char noCRC)
+{
+	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+	unsigned char	index, j, command;
+	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+	RXTXstate = lenght; /* RXTXstate global wariable is the main transmit counter */
+
+	*pbuf = 0x8f;
+	if(noCRC) *(pbuf + 1) = 0x90;	/* buffer setup for FIFO writing */
+	else
+		*(pbuf + 1) = 0x91;			/* buffer setup for FIFO writing */
+	*(pbuf + 2) = 0x3d;
+	*(pbuf + 3) = RXTXstate >> 4;
+	*(pbuf + 4) = (RXTXstate << 4) | brokenBits;
+
+	if(lenght > 12) lenght = 12;
+
+	if(lenght == 0x00 && brokenBits != 0x00)
+	{
+		lenght = 1;
+		RXTXstate = 1;
+	}
+
+	RAWwrite(pbuf, lenght + 5);		/* send the request using RAW writing */
+
+	/* Write 12 bytes the first time you write to FIFO */
+	irqCLR;					/* PORT2 interrupt flag clear */
+	irqON;
+
+	RXTXstate = RXTXstate - 12;
+	index = 17;
+
+	i_reg = 0x01;
+
+	while(RXTXstate > 0)
+	{
+		LPM0;				/* enter low power mode and exit on interrupt */
+		if(RXTXstate > 9)
+		{					/* the number of unsent bytes is in the RXTXstate global */
+			lenght = 10;	/* count variable has to be 10 : 9 bytes for FIFO and 1 address */
+		}
+		else if(RXTXstate < 1)
+		{
+			break;			/* return from interrupt if all bytes have been sent to FIFO */
+		}
+		else
+		{
+			lenght = RXTXstate + 1; /* all data has been sent out */
+		}						/* if */
+
+		buf[index - 1] = FIFO;	/* writes 9 or less bytes to FIFO for transmitting */
+		WriteCont(&buf[index - 1], lenght);
+		RXTXstate = RXTXstate - 9;	/* write 9 bytes to FIFO */
+		index = index + 9;
+	}				/* while */
+
+	RXTXstate = 1;	/* the response will be stored in buf[1] upwards */
+
+	/* wait for end of transmit */
+	while(i_reg == 0x01)
+	{
+		CounterSet();
+		countValue = 0xF000;	/* 60ms for TIMEOUT */
+		startCounter;			/* start timer up mode */
+		LPM0;
+	}
+
+	i_reg = 0x01;
+
+	CounterSet();
+	countValue = count1ms * 35; /* 35ms for TIMEOUT */
+	startCounter;				/* start timer up mode */
+
+	if
+	(
+		(((buf[5] & BIT6) == BIT6) && ((buf[6] == 0x21) || (buf[6] == 0x24) || (buf[6] == 0x27) || (buf[6] == 0x29)))
+	||	(buf[5] == 0x00 && ((buf[6] & 0xF0) == 0x20 || (buf[6] & 0xF0) == 0x30 || (buf[6] & 0xF0) == 0x40))
+	)
+	{
+		delay_ms(20);
+		command = Reset;
+		DirectCommand(&command);
+		command = TransmitNextSlot;
+		DirectCommand(&command);
+	}				/* if */
+
+	while(i_reg == 0x01)
+	{
+	}				/* wait for RX complete */
+
+	if(!POLLING)
+	{
+		switch(noCRC)
+		{
+		case 0:
+			if(i_reg == 0xFF)
+			{		/* recieved response */
+				kputchar('[');
+				for(j = 1; j < RXTXstate; j++)
+				{
+					Put_byte(buf[j]);
+				}	/* for */
+
+				kputchar(']');
+				return(0);
+			}
+			else if(i_reg == 0x02)
+			{		/* collision occured */
+				kputchar('[');
+				kputchar('z');
+				kputchar(']');
+				return(0);
+			}
+			else if(i_reg == 0x00)
+			{		/* timer interrupt */
+				kputchar('[');
+				kputchar(']');
+				return(1);
+			}
+			else
+				;
+			break;
+
+		case 1:
+			if(i_reg == 0xFF)
+			{		/* recieved response */
+				kputchar('(');
+				for(j = 1; j < RXTXstate; j++)
+				{
+					Put_byte(buf[j]);
+				}	/* for */
+
+				kputchar(')');
+				return(0);
+			}
+			else if(i_reg == 0x02)
+			{		/* collision occured */
+				kputchar('(');
+				kputchar('z');
+				kputchar(')');
+				return(0);
+			}
+			else if(i_reg == 0x00)
+			{		/* timer interrupt */
+				kputchar('(');
+				kputchar(')');
+				return(1);
+			}
+			else
+				;
+			break;
+		}			/* switch */
+	}				/* if */
+
+	irqOFF;
+	return(1);
+}					/* RequestCommand */
+
+
+#if 0
+
 #include "anticollision.h"
 unsigned char	POLLING;
 
@@ -6,7 +179,6 @@ unsigned char	POLLING;
  =======================================================================================================================
  =======================================================================================================================
  */
-#ifndef 0 //Används inte (än?)
 
 void EnableSlotCounter(void)
 {
@@ -318,8 +490,6 @@ void InventoryRequest(unsigned char *mask, unsigned char lenght)	/* host command
 	irqOFF;
 }		/* InventoryRequest */
 
-#endif //Kod under används
-
 /*
  =======================================================================================================================
     The function RequestCommand() is used for request and // ;
@@ -488,4 +658,3 @@ unsigned char RequestCommand(unsigned char *pbuf, unsigned char lenght, unsigned
 }					/* RequestCommand */
 
 #endif
-

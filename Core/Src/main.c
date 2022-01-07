@@ -68,13 +68,38 @@ static void MX_UART4_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+//RFID-FUNKTIONER vi behöver:
+/*	host.c:
+ * 		kputchar()
+ * 		Put_byte()
+ * 		Nibble2Ascii()
+ *
+ *	14443.c:
+ *		AntiCollisionSequenceA()
+ *		AnticollisionLoopA()
+ *		SelectCommand()
+ *
+ * 	anticollision.c:
+ * 		RequestCommand()
+ *
+ * 	parallell.c:
+ * 		DirectCommand()
+ * 		ReadCont()
+ * 		WriteCont()
+ * 		RAWwrite()
+ * 		WriteSingle()
+ *
+ * CounterSet(); funktionen borde gå att ersätta med HAL_Delay() istället
+ *
+ */
+
 void led(){
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
 	HAL_Delay(500);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 }
 
-int checkIfCardIsPresent(){
+void checkIfCardIsPresent(){
 	//set registers for protocol and execute anti collision sequence to find tags
 
 	// ISO14443A
@@ -95,11 +120,7 @@ int checkIfCardIsPresent(){
 
 	command[0] = IRQStatus;
 	command[1] = IRQMask;
-
-	//Not sure what this function should do? Receive?
-	//ReadCont(command, 2);
-
-	return 1;
+	ReadCont(command, 2);
 }
 
 int checkIfCardIdIsValid(){

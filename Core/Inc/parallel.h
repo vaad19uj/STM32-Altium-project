@@ -5,12 +5,12 @@
 //#ifndef SPI_BITBANG
 //#define SPI_BITBANG
 
-
-#include <MSP430x23x0.h>     	//can't be greater than 256+13 	
 #include <stdio.h>
+/*
 #include "hardware.h"
 #include "globals.h"
 #include "host.h"
+*/
 
 //NFC and tag emulation settings-----------------------------
 #define	NFC106		0x21

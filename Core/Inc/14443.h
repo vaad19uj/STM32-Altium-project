@@ -2,11 +2,12 @@
 //This file contains functions for testing the		//
 //14443-A and 14443-B protocol for TRF796x reader chip.	//
 //							//
-//Transmition an reception is done through the FIFO.	//
+//Transmission and reception is done through the FIFO.	//
 //------------------------------------------------------//
 #include <stdio.h>
-/*
 #include "parallel.h"
+#include "main.h"
+/*
 #include "SPI.h"
 #include "anticollision.h"
 #include "globals.h"
