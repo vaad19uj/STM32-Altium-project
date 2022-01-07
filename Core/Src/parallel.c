@@ -2,6 +2,7 @@
 #include "parallel.h"
 #include "SPI.h"
 #include "globals.h"
+#include "main.h"
 
 #define DBG 0
 
@@ -113,16 +114,12 @@ void SPIStopCondition(void)
  */
 void WriteSingle(unsigned char *pbuf, unsigned char lenght)
 {
+	*pbuf = (0x1f &*pbuf);	/* register address */
 	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
 	HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
 }		/* WriteSingle */
 
-
-
-
-
-#if 0
 /*
  =======================================================================================================================
     Function writes a specified number of registers from ;
@@ -131,59 +128,15 @@ void WriteSingle(unsigned char *pbuf, unsigned char lenght)
  */
 void WriteCont(unsigned char *pbuf, unsigned char lenght)
 {
-      /*~~~~~~~~~~~~~~*/
-	
-        /*~~~~~~~~~~~~~~*/
-       if ((SPIMODE)==0) //Parallel Mode
-       {	STARTcondition();
-	        *pbuf = (0x20 | *pbuf); /* address, write, continous */
-        	*pbuf = (0x3f &*pbuf);	/* register address */
-	        while(lenght > 0)
-        	{
-	        	TRFWrite = *pbuf;	/* send command */
-		        clkON;
-          		clkOFF;
-		        pbuf++;
-		        lenght--;
-        	}						/* while */
-
-	  STOPcont();
-       } //end of Parallel Mode
-
-
-      if (SPIMODE)
-      {
-              #ifndef SPI_BITBANG
-                       /*********************************/
-                       /* Start of Hardware SPI Mode */
-                       /*********************************/
-                              SlaveSelectLOW; //Start SPI Mode
-                              *pbuf = (0x20 | *pbuf); /* address, write, continous */
-                              *pbuf = (0x3f &*pbuf);	/* register address */
-                              while(lenght > 0)
-                              {
-                                      while (!(IFG2 & UCB0TXIFG));            // USCI_B0 TX buffer ready?
-                                      UCB0TXBUF = *pbuf;                  // Previous data to TX, RX
-
-                                      while (!(IFG2 & UCB0RXIFG));
-                                      temp=UCB0RXBUF;
-
-
-                                      pbuf++;
-                                      lenght--;
-                              }						/* while */
-
-                          SlaveSelectHIGH; //Stop SPI Mode
-
-
-
-              #endif
-
-
-      } //end of SPI mode
+    *pbuf = (0x20 | *pbuf); /* address, write, continous */
+    *pbuf = (0x3f &*pbuf);	/* register address */
+  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
+  	HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
+  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
 
 }	/* WriteCont */
 
+#if 0
 /*
  =======================================================================================================================
     Function reads only one register ;

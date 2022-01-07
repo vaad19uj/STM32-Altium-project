@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "14443.h"
+#include "parallel.h"
 
 /* USER CODE END Includes */
 
@@ -81,13 +82,7 @@ int checkIfCardIsPresent(){
 	command[1] = 0x21;
 	command[2] = ISOControl;	// set register 0x01 for ISO14443A operation
 	command[3] = 0x08;
-
-	//??
-	command = (0x1f & command);	/* register address */
-
-	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi1, (uint8_t *)&command, 4, HAL_MAX_DELAY);
-	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
+	WriteSingle(command, 4);
 	HAL_Delay(5);
 
 	AnticollisionSequenceA(0x00);	// do a complete anti collision sequence as described
@@ -95,13 +90,7 @@ int checkIfCardIsPresent(){
 	// in ISO14443-3 standard for type A
 	command[0] = ChipStateControl;	///* turn off RF driver
 	command[1] = 0x01;
-
-	//??
-	command = (0x1f & command);	/* register address */
-
-	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi1, (uint8_t *)&command, 2, HAL_MAX_DELAY);
-	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
+	WriteSingle(command, 2);
 	HAL_Delay(1);
 
 	command[0] = IRQStatus;
@@ -197,8 +186,6 @@ int main(void)
 
   // RFID chip enable input
   HAL_GPIO_WritePin(RFID_EN_GPIO_Port, RFID_EN_Pin, SET);
-
-  // do we need a dummy read of RFID IRQ here?
 
   /* USER CODE END 2 */
 
