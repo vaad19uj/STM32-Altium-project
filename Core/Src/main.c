@@ -88,6 +88,11 @@ static void MX_UART4_Init(void);
  * 		WriteCont()
  * 		RAWwrite()
  * 		WriteSingle()
+ * 		SPIStartCondition() (Om inte HAL löser det)
+ *
+ * 	hardware.c:
+ * 		CounterSet() (Kan vara irrelevant i stm32)
+ *
  *
  * CounterSet(); funktionen borde gå att ersätta med HAL_Delay() istället
  *
