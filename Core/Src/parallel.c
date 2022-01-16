@@ -1,5 +1,5 @@
 #include "parallel.h"
-
+#if 0
 /*
 #include "SPI.h"
 #include "globals.h"
@@ -69,7 +69,7 @@ void ReadCont(unsigned char *pbuf, unsigned char lenght)
 {
 
 }	/* ReadCont */
-
+#endif
 
 #if 0
 

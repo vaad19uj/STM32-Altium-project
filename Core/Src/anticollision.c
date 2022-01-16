@@ -1,5 +1,5 @@
 #include "anticollision.h"
-
+#if 0
 /*
  =======================================================================================================================
     The function RequestCommand() is used for request and // ;
@@ -168,7 +168,7 @@ unsigned char RequestCommand(unsigned char *pbuf, unsigned char lenght, unsigned
 	irqOFF;
 	return(1);
 }					/* RequestCommand */
-
+#endif
 
 #if 0
 

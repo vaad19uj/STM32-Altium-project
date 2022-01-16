@@ -3,6 +3,8 @@
 #include "14443.h"
 #include "host.h"
 
+#if 0
+
 unsigned char	RXdone;
 unsigned char	ENABLE;
 unsigned char	FirstSPIdata = 1;
@@ -45,6 +47,7 @@ unsigned char Nibble2Ascii(unsigned char anibble)
 
 	return(AsciiOut);
 }
+#endif
 
 #if 0
 

@@ -149,7 +149,7 @@ void buzzer(){
 	HAL_Delay(3000);
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 }
-
+/*
 void RFIDLockLoop(){
 	if(checkIfCardIsPresent()){
 		if(checkIfCardIdIsValid()){
@@ -159,6 +159,7 @@ void RFIDLockLoop(){
 		}
 	}
 }
+*/
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance == TIM1){
@@ -208,7 +209,7 @@ int main(void)
   HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
 
   // start timer 1 for interrupt
-  HAL_TIM_Base_Start_IT(&htim1);
+  //HAL_TIM_Base_Start_IT(&htim1);
 
   // RFID chip enable input
   HAL_GPIO_WritePin(RFID_EN_GPIO_Port, RFID_EN_Pin, SET);
@@ -219,12 +220,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	 // enter sleep mode, wake up from interrupt
-	 HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, XIN_Pin);
+	  // enter sleep mode, wake up from interrupt
+	/* HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 	 if(interruptFlag){
 		 RFIDLockLoop();
 		 interruptFlag = 0;
-	 }
+	 }*/
 
     /* USER CODE END WHILE */
 
@@ -461,6 +463,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : XIN_Pin */
+  GPIO_InitStruct.Pin = XIN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(XIN_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : SPI_NSS_Pin UNUSED_IO_1_Pin */
   GPIO_InitStruct.Pin = SPI_NSS_Pin|UNUSED_IO_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -474,8 +482,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RFID_IRQ_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED_Pin UNUSED_IO_8_Pin UNUSED_IO_7_Pin UNUSED_IO_6_Pin */
-  GPIO_InitStruct.Pin = LED_Pin|UNUSED_IO_8_Pin|UNUSED_IO_7_Pin|UNUSED_IO_6_Pin;
+  /*Configure GPIO pin : LED_Pin */
+  GPIO_InitStruct.Pin = LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : UNUSED_IO_8_Pin UNUSED_IO_7_Pin UNUSED_IO_6_Pin */
+  GPIO_InitStruct.Pin = UNUSED_IO_8_Pin|UNUSED_IO_7_Pin|UNUSED_IO_6_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

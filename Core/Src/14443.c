@@ -1,4 +1,5 @@
 #include "14443.h"
+#if 0
 
 unsigned char	completeUID[14];
 
@@ -436,6 +437,7 @@ char SelectCommand(unsigned char select, unsigned char *UID)
 FINISH:
 	return(ret);
 }	/* SelectCommand */
+#endif
 
 #if 0
 
