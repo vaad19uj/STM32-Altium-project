@@ -50,7 +50,6 @@ UART_HandleTypeDef huart4;
 
 /* USER CODE BEGIN PV */
 int interruptFlag = 0;
-char spi_buf[20];
 unsigned char command[10];
 
 /* USER CODE END PV */
@@ -67,6 +66,65 @@ static void MX_UART4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/*
+ =======================================================================================================================
+    Function writes only one register or a multiple number ;
+    of registers with specified addresses ;
+ =======================================================================================================================
+ */
+void WriteSingle(unsigned char *pbuf, unsigned char length)
+{
+	*pbuf = (0x1f &*pbuf);	/* register address */
+	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
+	HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
+	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
+}		/* WriteSingle */
+
+/*
+ =======================================================================================================================
+    Function writes a specified number of registers from ;
+    a specified address upwards ;
+ =======================================================================================================================
+ */
+void WriteCont(unsigned char *pbuf, unsigned char length)
+{
+    *pbuf = (0x20 | *pbuf); /* address, write, continous */
+    *pbuf = (0x3f &*pbuf);	/* register address */
+  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
+  	HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
+  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
+
+}	/* WriteCont */
+
+void RAWwrite(unsigned char *pbuf, unsigned char length)
+{
+  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
+  	HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
+  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
+
+}	/* RAWwrite */
+
+/*
+ =======================================================================================================================
+    Function DirectCommand transmits a command to the reader chip
+ =======================================================================================================================
+ */
+void DirectCommand(unsigned char *pbuf)
+{
+    *pbuf = (0x80 | *pbuf); /* command */
+    *pbuf = (0x9f &*pbuf);	/* command code */
+
+    HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
+    HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, 1, HAL_MAX_DELAY);
+    HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
+
+}	/* DirectCommand */
+
+void ReadCont(unsigned char *pbuf, unsigned char length)
+{
+
+}	/* ReadCont */
 
 //RFID-FUNKTIONER vi behöver:
 /*	host.c:
@@ -88,11 +146,6 @@ static void MX_UART4_Init(void);
  * 		WriteCont()
  * 		RAWwrite()
  * 		WriteSingle()
- * 		SPIStartCondition() (Om inte HAL löser det)
- *
- * 	hardware.c:
- * 		CounterSet() (Kan vara irrelevant i stm32)
- *
  *
  * CounterSet(); funktionen borde gå att ersätta med HAL_Delay() istället
  *
@@ -150,7 +203,7 @@ void buzzer(){
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 }
 
-void RFIDLockLoop(){
+/*void RFIDLockLoop(){
 	if(checkIfCardIsPresent()){
 		if(checkIfCardIdIsValid()){
 			openAndCloseLock();
@@ -158,7 +211,7 @@ void RFIDLockLoop(){
 			led();
 		}
 	}
-}
+}*/
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance == TIM1){
@@ -222,7 +275,7 @@ int main(void)
 	 // enter sleep mode, wake up from interrupt
 	 HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 	 if(interruptFlag){
-		 RFIDLockLoop();
+		// RFIDLockLoop();
 		 interruptFlag = 0;
 	 }
 

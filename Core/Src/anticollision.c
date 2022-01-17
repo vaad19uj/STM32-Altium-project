@@ -1,4 +1,6 @@
 #include "anticollision.h"
+#include "globals.h"
+#include "main.h"
 
 /*
  =======================================================================================================================
@@ -16,7 +18,7 @@ unsigned char RequestCommand(unsigned char *pbuf, unsigned char lenght, unsigned
 	unsigned char	index, j, command;
 	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-	RXTXstate = lenght; /* RXTXstate global wariable is the main transmit counter */
+	RXTXstate = lenght; /* RXTXstate global variable is the main transmit counter */
 
 	*pbuf = 0x8f;
 	if(noCRC) *(pbuf + 1) = 0x90;	/* buffer setup for FIFO writing */
@@ -37,8 +39,8 @@ unsigned char RequestCommand(unsigned char *pbuf, unsigned char lenght, unsigned
 	RAWwrite(pbuf, lenght + 5);		/* send the request using RAW writing */
 
 	/* Write 12 bytes the first time you write to FIFO */
-	irqCLR;					/* PORT2 interrupt flag clear */
-	irqON;
+	//irqCLR;					/* PORT2 interrupt flag clear */
+	//irqON;
 
 	RXTXstate = RXTXstate - 12;
 	index = 17;
@@ -47,7 +49,7 @@ unsigned char RequestCommand(unsigned char *pbuf, unsigned char lenght, unsigned
 
 	while(RXTXstate > 0)
 	{
-		LPM0;				/* enter low power mode and exit on interrupt */
+		//LPM0;				/* enter low power mode and exit on interrupt */
 		if(RXTXstate > 9)
 		{					/* the number of unsent bytes is in the RXTXstate global */
 			lenght = 10;	/* count variable has to be 10 : 9 bytes for FIFO and 1 address */
@@ -72,30 +74,25 @@ unsigned char RequestCommand(unsigned char *pbuf, unsigned char lenght, unsigned
 	/* wait for end of transmit */
 	while(i_reg == 0x01)
 	{
-		CounterSet();
-		countValue = 0xF000;	/* 60ms for TIMEOUT */
-		startCounter;			/* start timer up mode */
-		LPM0;
+		HAL_Delay(60);
 	}
 
 	i_reg = 0x01;
 
-	CounterSet();
-	countValue = count1ms * 35; /* 35ms for TIMEOUT */
-	startCounter;				/* start timer up mode */
+	HAL_Delay(35);
 
-	if
+/*	if
 	(
 		(((buf[5] & BIT6) == BIT6) && ((buf[6] == 0x21) || (buf[6] == 0x24) || (buf[6] == 0x27) || (buf[6] == 0x29)))
 	||	(buf[5] == 0x00 && ((buf[6] & 0xF0) == 0x20 || (buf[6] & 0xF0) == 0x30 || (buf[6] & 0xF0) == 0x40))
 	)
 	{
-		delay_ms(20);
+		HAL_Delay(20);
 		command = Reset;
 		DirectCommand(&command);
 		command = TransmitNextSlot;
 		DirectCommand(&command);
-	}				/* if */
+	}			*/	/* if */
 
 	while(i_reg == 0x01)
 	{
@@ -165,7 +162,7 @@ unsigned char RequestCommand(unsigned char *pbuf, unsigned char lenght, unsigned
 		}			/* switch */
 	}				/* if */
 
-	irqOFF;
+	//irqOFF;
 	return(1);
 }					/* RequestCommand */
 

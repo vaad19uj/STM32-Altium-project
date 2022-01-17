@@ -1,15 +1,5 @@
+#if 0
 #include "parallel.h"
-
-/*
-#include "SPI.h"
-#include "globals.h"
-*/
-
-#define DBG 0
-
-unsigned char temp;
-unsigned int DUMMYREAD = 0;
-unsigned int mask = 0x80;
 
 /*
  =======================================================================================================================
@@ -17,7 +7,7 @@ unsigned int mask = 0x80;
     of registers with specified addresses ;
  =======================================================================================================================
  */
-void WriteSingle(unsigned char *pbuf, unsigned char lenght)
+void WriteSingle(unsigned char *pbuf, unsigned char length)
 {
 	*pbuf = (0x1f &*pbuf);	/* register address */
 	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
@@ -31,7 +21,7 @@ void WriteSingle(unsigned char *pbuf, unsigned char lenght)
     a specified address upwards ;
  =======================================================================================================================
  */
-void WriteCont(unsigned char *pbuf, unsigned char lenght)
+void WriteCont(unsigned char *pbuf, unsigned char length)
 {
     *pbuf = (0x20 | *pbuf); /* address, write, continous */
     *pbuf = (0x3f &*pbuf);	/* register address */
@@ -41,7 +31,7 @@ void WriteCont(unsigned char *pbuf, unsigned char lenght)
 
 }	/* WriteCont */
 
-void RAWwrite(unsigned char *pbuf, unsigned char lenght)
+void RAWwrite(unsigned char *pbuf, unsigned char length)
 {
   	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
   	HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
@@ -60,16 +50,17 @@ void DirectCommand(unsigned char *pbuf)
     *pbuf = (0x9f &*pbuf);	/* command code */
 
     HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
-    HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, 1, HAL_MAX_DELAY);
     HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
 
 }	/* DirectCommand */
 
-void ReadCont(unsigned char *pbuf, unsigned char lenght)
+void ReadCont(unsigned char *pbuf, unsigned char length)
 {
 
 }	/* ReadCont */
 
+#endif
 
 #if 0
 

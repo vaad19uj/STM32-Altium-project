@@ -57,6 +57,12 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
+void WriteSingle(unsigned char *pbuf, unsigned char length);
+void WriteCont(unsigned char *pbuf, unsigned char length);
+void ReadCont(unsigned char *pbuf, unsigned char length);
+void DirectCommand(unsigned char *pbuf);
+void RAWwrite(unsigned char *pbuf, unsigned char length);
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

@@ -3,17 +3,16 @@
 #include "14443.h"
 #include "host.h"
 
-unsigned char	RXdone;
-unsigned char	ENABLE;
-unsigned char	FirstSPIdata = 1;
-
 //inte översatt
 void kputchar(char TXchar)
 {
+	/*
+	 * ?????
 	while(!(IFG2 & UCA0TXIFG));
 
-	/* wait for TX register to be empty */
-	UCA0TXBUF = TXchar;	/* send the character */
+	// wait for TX register to be empty
+	UCA0TXBUF = TXchar;	// send the character
+	*/
 }	/* putchar */
 
 void Put_byte(unsigned char abyte)

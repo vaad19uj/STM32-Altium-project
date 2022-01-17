@@ -1,6 +1,9 @@
 #include "14443.h"
+#include "globals.h"
+#include "main.h"
+#include "host.h"
 
-unsigned char	completeUID[14];
+unsigned char completeUID[14];
 
 // inte "översatt" än
 void AnticollisionSequenceA(unsigned char REQA)
@@ -32,9 +35,9 @@ void AnticollisionSequenceA(unsigned char REQA)
 	else
 		buf[5] = 0x52;		/* send WUPA command */
 	//RequestCommand(&buf[0], 0x00, 0x0f, 1);
-        RequestCommand(&buf[0], 0x00, 0x0F, 1);
-	irqCLR;					/* PORT2 interrupt flag clear */
-	irqON;
+    RequestCommand(&buf[0], 0x00, 0x0F, 1);
+	//irqCLR;					/* PORT2 interrupt flag clear */
+	//irqON;
 
 	/*
 	 * UIDsize = ((buf[2] >> 6) & 0x03) + 1;
@@ -43,17 +46,19 @@ void AnticollisionSequenceA(unsigned char REQA)
 	{
 		for(i = 40; i < 45; i++) buf[i] = 0x00;
 		AnticollisionLoopA(select, NVB, &buf[40]);
-		if(POLLING) LEDtypeAON;
+		if(POLLING){
+			HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
+		}
 	}
 	else
 	{
-		LEDtypeAOFF;
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 	}
 
 	buf[0] = ISOControl;
 	buf[1] = 0x08;			/* recieve with no CRC */
 	WriteSingle(buf, 2);
-	irqOFF;
+	//irqOFF;
 }	/* AnticollisionSequenceA */
 
 
@@ -116,10 +121,7 @@ void AnticollisionLoopA(unsigned char select, unsigned char NVB, unsigned char *
 	i_reg = 0x01;
 	while(i_reg != 0x00)
 	{
-		CounterSet();
-		countValue = 0x2710;	/* 10ms for TIMEOUT */
-		startCounter;			/* start timer up mode */
-		LPM0;
+		HAL_Delay(10);
 	}	/* wait for end of TX */
 
 	i_reg = 0x01;
@@ -127,10 +129,7 @@ void AnticollisionLoopA(unsigned char select, unsigned char NVB, unsigned char *
 	while((i_reg == 0x01) && (i < 2))
 	{	/* wait for end of RX or timeout */
 		i++;
-		CounterSet();
-		countValue = 0x2710;						/* 10ms for TIMEOUT */
-		startCounter;								/* start timer up mode */
-		LPM0;
+		HAL_Delay(10);
 	}
 
 	if(RXErrorFlag == 0x02) i_reg = 0x02;
@@ -198,7 +197,7 @@ void AnticollisionLoopA(unsigned char select, unsigned char NVB, unsigned char *
 						{
 							if(i < (NvBytes - 1))	/* Combine the known bytes and the */
 								Put_byte(*(UID + i + 1));	/* recieved bytes to a whole UID. */
-							else if(i = (NvBytes - 1))
+							else if(i == (NvBytes - 1))
 								Put_byte((buf[i + 2 - NvBytes] &~NvBits) | (*(UID + i + 1) & NvBits));
 							else
 								Put_byte(buf[i + 2 - NvBytes]);
@@ -317,9 +316,8 @@ void AnticollisionLoopA(unsigned char select, unsigned char NVB, unsigned char *
 		CollPoss++;			/* reader returns CollPoss - 1 */
 		for(i = 1; i < 5; i++) newUID[i - 1] = buf[i];
 
-		CounterSet();
-		countValue = 100;	/* 1.2ms for TIMEOUT */
-		startCounter;		/* start timer up mode */
+		HAL_Delay(1.2);
+
 		i_reg = 0x01;
 		while(i_reg == 0x01)
 		{
@@ -336,11 +334,11 @@ void AnticollisionLoopA(unsigned char select, unsigned char NVB, unsigned char *
 
 	if(found)
 	{
-		LEDtypeAON;
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
 	}
 	else
 	{
-		LEDtypeAOFF;
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 	}
 }		/* AnticollisionLoopA */
 
@@ -381,9 +379,7 @@ char SelectCommand(unsigned char select, unsigned char *UID)
 
 	i_reg = 0x01;
 
-	CounterSet();
-	countValue = 0x2000;	/* 10ms for TIMEOUT */
-	startCounter;			/* start timer up mode */
+	HAL_Delay(10);
 
 	while(i_reg == 0x01)
 	{
@@ -393,30 +389,30 @@ char SelectCommand(unsigned char select, unsigned char *UID)
 	{
 		if(i_reg == 0xFF)
 		{					/* recieved response */
-			if((buf[1] & BIT2) == BIT2)
-			{				/* UID not complete */
+		/*	if((buf[1] & BIT2) == BIT2)
+			{				// UID not complete
 				kputchar('(');
 				for(j = 1; j < RXTXstate; j++)
 				{
 					Put_byte(buf[j]);
-				}			/* for */
+				}
 
 				kputchar(')');
 				ret = 1;
 				goto FINISH;
 			}
 			else
-			{				/* UID complete */
+			{				// UID complete
 				kputchar('[');
 				for(j = 1; j < RXTXstate; j++)
 				{
 					Put_byte(buf[j]);
-				}			/* for */
+				}
 
 				kputchar(']');
 				ret = 0;
 				goto FINISH;
-			}
+			}*/
 		}
 		else if(i_reg == 0x02)
 		{					/* collision occured */
