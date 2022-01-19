@@ -11,11 +11,10 @@
  =======================================================================================================================
  */
 
-//inte översatt än
 unsigned char RequestCommand(unsigned char *pbuf, unsigned char lenght, unsigned char brokenBits, char noCRC)
 {
 	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-	unsigned char	index, j, command;
+	unsigned char index, j, command;
 	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 	RXTXstate = lenght; /* RXTXstate global variable is the main transmit counter */

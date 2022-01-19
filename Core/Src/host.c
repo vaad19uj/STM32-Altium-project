@@ -3,7 +3,6 @@
 #include "14443.h"
 #include "host.h"
 
-//inte översatt
 void kputchar(char TXchar)
 {
 	/*

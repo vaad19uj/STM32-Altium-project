@@ -49,7 +49,7 @@ TIM_HandleTypeDef htim1;
 UART_HandleTypeDef huart4;
 
 /* USER CODE BEGIN PV */
-int interruptFlag = 0;
+//int interruptFlag = 0;
 unsigned char command[10];
 
 /* USER CODE END PV */
@@ -157,7 +157,7 @@ void led(){
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 }
 
-void checkIfCardIsPresent(){
+void findTags(){
 	//set registers for protocol and execute anti collision sequence to find tags
 
 	// ISO14443A
@@ -176,15 +176,16 @@ void checkIfCardIsPresent(){
 	WriteSingle(command, 2);
 	HAL_Delay(1);
 
-	command[0] = IRQStatus;
+/*	command[0] = IRQStatus;
 	command[1] = IRQMask;
 	ReadCont(command, 2);
+	*/
 }
 
-int checkIfCardIdIsValid(){
+/*int checkIfCardIdIsValid(){
 	//do something with hspi1
 	return 1;
-}
+}*/
 
 void openAndCloseLock(){
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, SET);
@@ -213,11 +214,11 @@ void buzzer(){
 	}
 }*/
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+/*void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance == TIM1){
 		interruptFlag = 1;
 	}
-}
+}*/
 
 /* USER CODE END 0 */
 
@@ -261,7 +262,7 @@ int main(void)
   HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
 
   // start timer 1 for interrupt
-  HAL_TIM_Base_Start_IT(&htim1);
+  //HAL_TIM_Base_Start_IT(&htim1);
 
   // RFID chip enable input
   HAL_GPIO_WritePin(RFID_EN_GPIO_Port, RFID_EN_Pin, SET);
@@ -272,12 +273,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	 // enter sleep mode, wake up from interrupt
-	 HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-	 if(interruptFlag){
-		// RFIDLockLoop();
-		 interruptFlag = 0;
-	 }
+	  findTags();
 
     /* USER CODE END WHILE */
 

@@ -7,21 +7,21 @@
 #define TMP_BUF_LENGTH 30
 #define EnableInterrupts _EINT()
 
-extern char rxdata;			//RS232 RX data byte
-extern unsigned char buf[BUF_LENGTH];
-extern unsigned char buf_tmp[TMP_BUF_LENGTH];
-extern signed char RXTXstate;	//used for transmit recieve byte count
-extern unsigned char flags;	//stores the mask value (used in anticollision)
-extern unsigned char AFI;
-extern unsigned char RXErrorFlag;
-extern unsigned char RXflag;		//indicates that data is in buffer
+char rxdata;			//RS232 RX data byte
+unsigned char buf[BUF_LENGTH];
+unsigned char buf_tmp[TMP_BUF_LENGTH];
+signed char RXTXstate;	//used for transmit recieve byte count
+unsigned char flags;	//stores the mask value (used in anticollision)
+unsigned char AFI;
+unsigned char RXErrorFlag;
+unsigned char RXflag;		//indicates that data is in buffer
 
-extern unsigned char i_reg;	//interrupt register
+unsigned char i_reg;	//interrupt register
 
-extern unsigned char CollPoss;
+unsigned char CollPoss;
 
-extern unsigned char RXdone;
-extern unsigned char POLLING;
-extern unsigned char GUI;
+unsigned char RXdone;
+unsigned char POLLING;
+unsigned char GUI;
 
 //-----------------------------------------------

@@ -5,7 +5,6 @@
 
 unsigned char completeUID[14];
 
-// inte "översatt" än
 void AnticollisionSequenceA(unsigned char REQA)
 {
 	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -61,8 +60,6 @@ void AnticollisionSequenceA(unsigned char REQA)
 	//irqOFF;
 }	/* AnticollisionSequenceA */
 
-
-//inte "översatt" än
 void AnticollisionLoopA(unsigned char select, unsigned char NVB, unsigned char *UID)
 {
 	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -342,7 +339,6 @@ void AnticollisionLoopA(unsigned char select, unsigned char NVB, unsigned char *
 	}
 }		/* AnticollisionLoopA */
 
-//inte översatt än
 char SelectCommand(unsigned char select, unsigned char *UID)
 {
 	/*~~~~~~~~~~~~~~~~~~~~*/
