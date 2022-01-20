@@ -68,43 +68,13 @@ static void MX_UART4_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-//RFID-FUNKTIONER vi behöver:
-/*	host.c:
- * 		kputchar()
- * 		Put_byte()
- * 		Nibble2Ascii()
- *
- *	14443.c:
- *		AntiCollisionSequenceA()
- *		AnticollisionLoopA()
- *		SelectCommand()
- *
- * 	anticollision.c:
- * 		RequestCommand()
- *
- * 	parallell.c:
- * 		DirectCommand()
- * 		ReadCont()
- * 		WriteCont()
- * 		RAWwrite()
- * 		WriteSingle()
- * 		SPIStartCondition() (Om inte HAL löser det)
- *
- * 	hardware.c:
- * 		CounterSet() (Kan vara irrelevant i stm32)
- *
- *
- * CounterSet(); funktionen borde gå att ersätta med HAL_Delay() istället
- *
- */
-
 void led(){
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
 	HAL_Delay(500);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 }
 
-void checkIfCardIsPresent(){
+void findTags(){
 	//set registers for protocol and execute anti collision sequence to find tags
 
 	// ISO14443A
@@ -128,9 +98,14 @@ void checkIfCardIsPresent(){
 	ReadCont(command, 2);
 }
 
-int checkIfCardIdIsValid(){
-	//do something with hspi1
+int checkIfCardIsPresent(){
 	return 1;
+}
+
+int checkIfCardIdIsValid(){
+	static int val = 0;
+	val = !val;
+	return val;
 }
 
 void openAndCloseLock(){
@@ -149,7 +124,7 @@ void buzzer(){
 	HAL_Delay(3000);
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 }
-/*
+
 void RFIDLockLoop(){
 	if(checkIfCardIsPresent()){
 		if(checkIfCardIdIsValid()){
@@ -159,7 +134,6 @@ void RFIDLockLoop(){
 		}
 	}
 }
-*/
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance == TIM1){
@@ -209,7 +183,7 @@ int main(void)
   HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
 
   // start timer 1 for interrupt
-  //HAL_TIM_Base_Start_IT(&htim1);
+  HAL_TIM_Base_Start_IT(&htim1);
 
   // RFID chip enable input
   HAL_GPIO_WritePin(RFID_EN_GPIO_Port, RFID_EN_Pin, SET);
@@ -220,13 +194,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, XIN_Pin);
+		//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, XIN_Pin);
 	  // enter sleep mode, wake up from interrupt
-	/* HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+	 HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 	 if(interruptFlag){
 		 RFIDLockLoop();
 		 interruptFlag = 0;
-	 }*/
+	 }
 
     /* USER CODE END WHILE */
 
