@@ -220,6 +220,267 @@ void buzzer(){
 	}
 }*/
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+#if 0
+	if (GPIO_Pin == RFID_IRQ_Pin){
+		//unsigned char *Register??
+		/*~~~~~~~~~~~~~~~~*/
+		/*
+		 * char phello[20];
+		 * //for testing
+		 */
+		unsigned char	len;
+		/*~~~~~~~~~~~~~~~~*/
+
+		/*
+		 * Register = Register & 0xF7;
+		 * //set the parity flag to 0 ;
+		 * parity is not used in 15693 and Tag-It
+		 */
+	#if DBG
+		Put_byte(*Register);
+	#endif
+		if(*Register == 0xA0)
+		{					/* TX active and only 3 bytes left in FIFO */
+			i_reg = 0x00;
+	#if DBG
+			kputchar('.');	/* FIFO filling is done in the transmit function */
+	#endif
+		}
+
+		else if(*Register == BIT7)
+		{					/* TX complete */
+			i_reg = 0x00;
+			*Register = Reset;			/* reset the FIFO after TX */
+			DirectCommand(Register);
+	#if DBG
+			kputchar('T');
+	#endif
+		}
+
+		else if((*Register & BIT1) == BIT1)
+		{								/* collision error */
+			i_reg = 0x02;				/* RX complete */
+
+	//		*Register = StopDecoders;	/* reset the FIFO after TX */
+	//		DirectCommand(Register);
+
+			CollPoss = CollisionPosition;
+			ReadSingle(&CollPoss, 1);
+
+	//		*Register = 0x0c;
+	//		ReadSingle(Register, 1);
+			/*
+			 * CollPoss &= 0xF7;
+			 */
+			len = CollPoss - 0x20;		/* number of valid bytes if FIFO */
+
+			if(!POLLING)
+			{
+				kputchar('{');
+				Put_byte(CollPoss);
+				kputchar('}');
+			}
+
+			if((len & 0x0f) != 0x00) len = len + 0x10;	/* add 1 byte if broken byte recieved */
+			len = len >> 4;
+
+			if(len != 0x00)
+			{
+				buf[RXTXstate] = FIFO;					/* write the recieved bytes to the correct place of the
+														 * buffer;
+														 * */
+				ReadCont(&buf[RXTXstate], len);
+				RXTXstate = RXTXstate + len;
+			}						/* if */
+			*Register = StopDecoders;	/* reset the FIFO after TX */
+			DirectCommand(Register);
+
+			*Register = Reset;
+			DirectCommand(Register);
+
+			*Register = IRQStatus;	/* IRQ status register address */
+					 *(Register + 1) = IRQMask;
+			//ReadSingle(Register, 2);	/* function call for single address read */
+					// ReadCont(Register, 2);
+						if (SPIMODE)
+						   ReadCont(Register, 2);
+						else
+							ReadSingle(Register, 1);
+
+			irqCLR;
+		}
+		else if(*Register == BIT6)
+		{	/* RX flag means that EOF has been recieved */
+			/* and the number of unread bytes is in FIFOstatus regiter */
+			if(RXErrorFlag == 0x02)
+			{
+				i_reg = 0x02;
+				return;
+			}
+
+			*Register = FIFOStatus;
+			ReadSingle(Register, 1);					/* determine the number of bytes left in FIFO */
+	//                ReadCont(Register, 1);
+			*Register = (0x0F &*Register) + 0x01;
+			buf[RXTXstate] = FIFO;			/* write the recieved bytes to the correct place of the*/
+
+
+			ReadCont(&buf[RXTXstate], *Register);
+			RXTXstate = RXTXstate +*Register;
+
+			*Register = TXLenghtByte2;					/* determine if there are broken bytes */
+		 //       ReadSingle(Register, 1);					/* determine the number of bits */
+					  ReadCont(Register, 1);
+
+			if((*Register & BIT0) == BIT0)
+			{
+				*Register = (*Register >> 1) & 0x07;	/* mask the first 5 bits */
+				*Register = 8 -*Register;
+				buf[RXTXstate - 1] &= 0xFF << *Register;
+			}								/* if */
+
+	#if DBG
+			kputchar('E');
+	#endif
+			*Register = Reset;				/* reset the FIFO after last byte has been read out */
+			DirectCommand(Register);
+
+			i_reg = 0xFF;					/* signal to the recieve funnction that this are the last bytes */
+		}
+		else if(*Register == 0x60)
+		{									/* RX active and 9 bytes allready in FIFO */
+			i_reg = 0x01;
+			buf[RXTXstate] = FIFO;
+			ReadCont(&buf[RXTXstate], 9);	/* read 9 bytes from FIFO */
+			RXTXstate = RXTXstate + 9;
+	#if DBG
+			kputchar('F');
+	#endif
+			if(irqPORT & irqPIN)
+			{
+				*Register = IRQStatus;		/* IRQ status register address */
+							*(Register + 1) = IRQMask;
+				//ReadSingle(Register, 2);	/* function call for single address read */
+							//ReadCont(Register, 2);
+							   if (SPIMODE)
+								  ReadCont(Register, 2);
+							  else
+									ReadSingle(Register, 1);
+				irqCLR;
+
+				if(*Register == 0x40)
+				{	/* end of recieve */
+					*Register = FIFOStatus;
+					ReadSingle(Register, 1);					/* determine the number of bytes left in FIFO */
+									//ReadCont(Register, 1);
+					*Register = 0x0F & (*Register + 0x01);
+					buf[RXTXstate] = FIFO;						/* write the recieved bytes to the correct place of the*/
+
+
+					ReadCont(&buf[RXTXstate], *Register);
+					RXTXstate = RXTXstate +*Register;
+
+					*Register = TXLenghtByte2;					/* determine if there are broken bytes */
+					ReadSingle(Register, 1);					/* determine the number of bits */
+									//ReadCont(Register, 1);
+
+					if((*Register & BIT0) == BIT0)
+					{
+						*Register = (*Register >> 1) & 0x07;	/* mask the first 5 bits */
+						*Register = 8 -*Register;
+						buf[RXTXstate - 1] &= 0xFF << *Register;
+					}						/* if */
+
+	#if DBG
+					kputchar('E');
+	#endif
+					i_reg = 0xFF;			/* signal to the recieve funnction that this are the last bytes */
+					*Register = Reset;		/* reset the FIFO after last byte has been read out */
+					DirectCommand(Register);
+				}
+				else if(*Register == 0x50)
+				{							/* end of recieve and error */
+					i_reg = 0x02;
+	#if DBG
+					kputchar('x');
+	#endif
+				}
+			}
+			else
+			{
+				Register[0] = IRQStatus;
+							Register[1] = IRQMask;
+				//ReadSingle(Register, 2);	/* function call for single address read */
+							//ReadCont(Register, 2);
+							   if (SPIMODE)
+									ReadCont(Register, 2);
+							   else
+									 ReadSingle(Register, 1);
+				if(Register[0] == 0x00) i_reg = 0xFF;
+			}
+		}
+		else if((*Register & BIT4) == BIT4)
+		{						/* CRC error */
+			if((*Register & BIT5) == BIT5)
+			{
+				i_reg = 0x01;	/* RX active */
+				RXErrorFlag = 0x02;
+			}
+			else
+				i_reg = 0x02;	/* end of RX */
+		}
+		else if((*Register & BIT2) == BIT2)
+		{						/* byte framing error */
+			if((*Register & BIT5) == BIT5)
+			{
+				i_reg = 0x01;	/* RX active */
+				RXErrorFlag = 0x02;
+			}
+			else
+				i_reg = 0x02;	/* end of RX */
+		}
+		else if((*Register == BIT0))
+		{						/* No response interrupt */
+			i_reg = 0x00;
+	#if DBG
+			kputchar('N');
+	#endif
+		}
+		else
+		{						/* Interrupt register not properly set */
+			if(!POLLING)
+			{
+				/*
+				 * sprintf(phello, "Interrupt error. %x\n\r", *Register);
+				 * *send_cstring(phello);
+				 */
+				send_cstring("Interrupt error");
+				Put_byte(*Register);
+			}
+
+			i_reg = 0x02;
+
+			*Register = StopDecoders;	/* reset the FIFO after TX */
+			DirectCommand(Register);
+
+			*Register = Reset;
+			DirectCommand(Register);
+
+			*Register = IRQStatus;		/* IRQ status register address */
+					*(Register + 1) = IRQMask;
+			//ReadSingle(Register, 2);	/* function call for single address read */
+					//ReadCont(Register, 2);
+					   if (SPIMODE)
+						  ReadCont(Register, 2);
+					   else
+						   ReadSingle(Register, 1);
+			irqCLR;
+		}
+	}	/* InterruptHandlerReader */
+#endif
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -273,7 +534,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  findTags();
+	//  findTags();
 
     /* USER CODE END WHILE */
 
