@@ -51,6 +51,7 @@ UART_HandleTypeDef huart4;
 /* USER CODE BEGIN PV */
 int interruptFlag = 0;
 unsigned char command[10];
+int counter = 0;
 
 /* USER CODE END PV */
 
@@ -73,122 +74,24 @@ static void MX_UART4_Init(void);
     of registers with specified addresses ;
  =======================================================================================================================
  */
-void WriteSingle(unsigned char *pbuf, unsigned char length)
-{
-	*pbuf = (0x1f &*pbuf);	/* register address */
-	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
-	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
-}		/* WriteSingle */
-
-/*
- =======================================================================================================================
-    Function writes a specified number of registers from ;
-    a specified address upwards ;
- =======================================================================================================================
- */
-void WriteCont(unsigned char *pbuf, unsigned char length)
-{
-    *pbuf = (0x20 | *pbuf); /* address, write, continous */
-    *pbuf = (0x3f &*pbuf);	/* register address */
-  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
-  	HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
-  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
-
-}	/* WriteCont */
-
-void RAWwrite(unsigned char *pbuf, unsigned char length)
-{
-  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
-  	HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, length, HAL_MAX_DELAY);
-  	HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
-
-}	/* RAWwrite */
-
-/*
- =======================================================================================================================
-    Function DirectCommand transmits a command to the reader chip
- =======================================================================================================================
- */
-void DirectCommand(unsigned char *pbuf)
-{
-    *pbuf = (0x80 | *pbuf); /* command */
-    *pbuf = (0x9f &*pbuf);	/* command code */
-
-    HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, RESET);
-    HAL_SPI_Transmit(&hspi1, (uint8_t *)&*pbuf, 1, HAL_MAX_DELAY);
-    HAL_GPIO_WritePin(SPI_NSS_GPIO_Port, SPI_NSS_Pin, SET);
-
-}	/* DirectCommand */
-
-void ReadCont(unsigned char *pbuf, unsigned char length)
-{
-
-}	/* ReadCont */
-
-//RFID-FUNKTIONER vi behöver:
-/*	host.c:
- * 		kputchar()
- * 		Put_byte()
- * 		Nibble2Ascii()
- *
- *	14443.c:
- *		AntiCollisionSequenceA()
- *		AnticollisionLoopA()
- *		SelectCommand()
- *
- * 	anticollision.c:
- * 		RequestCommand()
- *
- * 	parallell.c:
- * 		DirectCommand()
- * 		ReadCont()
- * 		WriteCont()
- * 		RAWwrite()
- * 		WriteSingle()
- *
- * CounterSet(); funktionen borde gå att ersätta med HAL_Delay() istället
- *
- */
 
 void led(){
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
-	HAL_Delay(500);
+	HAL_Delay(5000);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 }
 
-void checkIfCardIsPresent(){
-	//set registers for protocol and execute anti collision sequence to find tags
-
-	// ISO14443A
-	command[0] = ChipStateControl;
-	command[1] = 0x21;
-	command[2] = ISOControl;	// set register 0x01 for ISO14443A operation
-	command[3] = 0x08;
-	WriteSingle(command, 4);
-	HAL_Delay(5);
-
-	AnticollisionSequenceA(0x00);	// do a complete anti collision sequence as described
-
-	// in ISO14443-3 standard for type A
-	command[0] = ChipStateControl;	///* turn off RF driver
-	command[1] = 0x01;
-	WriteSingle(command, 2);
-	HAL_Delay(1);
-
-	command[0] = IRQStatus;
-	command[1] = IRQMask;
-	ReadCont(command, 2);
-}
-
-int checkIfCardIdIsValid(){
-	//do something with hspi1
-	return 1;
+int checkIfCardIsPresent(){
+	if(counter == 135600000){
+		counter = 0;
+		return 1;
+	}
+	return 0;
 }
 
 void openAndCloseLock(){
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, SET);
-	HAL_Delay(500);
+	HAL_Delay(5000);
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, RESET);
 }
 
@@ -203,19 +106,16 @@ void buzzer(){
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 }
 
-/*void RFIDLockLoop(){
-	if(checkIfCardIsPresent()){
-		if(checkIfCardIdIsValid()){
-			openAndCloseLock();
-		}else{
-			led();
-		}
+
+/*void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if(htim->Instance == TIM1){
+		interruptFlag = 1;
 	}
 }*/
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(htim->Instance == TIM1){
-		interruptFlag = 1;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if(GPIO_Pin == XIN_Pin){
+		counter++;
 	}
 }
 
@@ -272,11 +172,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	 // enter sleep mode, wake up from interrupt
-	 HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-	 if(interruptFlag){
-		// RFIDLockLoop();
-		 interruptFlag = 0;
+	  if(checkIfCardIsPresent()){
+		  openAndCloseLock();
+		  led();
 	 }
 
     /* USER CODE END WHILE */
@@ -513,6 +411,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : XIN_Pin */
+  GPIO_InitStruct.Pin = XIN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(XIN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SPI_NSS_Pin UNUSED_IO_1_Pin */
   GPIO_InitStruct.Pin = SPI_NSS_Pin|UNUSED_IO_1_Pin;
