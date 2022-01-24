@@ -89,10 +89,12 @@ int checkIfCardIsPresent(){
 	return 0;
 }
 
-void openAndCloseLock(){
+void openAndCloseLockLed(){
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, SET);
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET);
 	HAL_Delay(5000);
 	HAL_GPIO_WritePin(LOCK_CONTROL_GPIO_Port, LOCK_CONTROL_Pin, RESET);
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET);
 }
 
 void buzzer(){
@@ -173,8 +175,7 @@ int main(void)
   while (1)
   {
 	  if(checkIfCardIsPresent()){
-		  openAndCloseLock();
-		  led();
+		  openAndCloseLockLed();
 	 }
 
     /* USER CODE END WHILE */
